@@ -1,0 +1,18 @@
+{% extends "news/base.html" %}
+{% block title %}Newsletters{% endblock %}
+{% block content %}
+<h2 class="mb-3">Newsletters</h2>
+{% if newsletters %}
+    <div class="list-group">
+        {% for newsletter in newsletters %}
+            <a href="{% url 'newsletter-detail' newsletter.pk %}" class="list-group-item list-group-item-action mb-2">
+                <h5 class="mb-1">{{ newsletter.title }}</h5>
+                <p class="mb-1 text-muted">By {{ newsletter.author.username }} — {{ newsletter.created_at|date:"d M Y" }}</p>
+                <small>{{ newsletter.articles.count }} article(s)</small>
+            </a>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No newsletters yet.</p>
+{% endif %}
+{% endblock %}

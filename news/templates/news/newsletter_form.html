@@ -1,0 +1,17 @@
+{% extends "news/base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit Newsletter{% else %}New Newsletter{% endif %}{% endblock %}
+{% block content %}
+<h2>{% if mode == 'edit' %}Edit Newsletter{% else %}Create a Newsletter{% endif %}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+        <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}

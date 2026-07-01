@@ -1,0 +1,20 @@
+{% extends "news/base.html" %}
+{% block title %}Pending Articles{% endblock %}
+{% block content %}
+<h2 class="mb-3">Articles Awaiting Review</h2>
+{% if articles %}
+    <div class="list-group">
+        {% for article in articles %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="{% url 'article-detail' article.pk %}">{{ article.title }}</a>
+                    <div class="text-muted small">By {{ article.author.username }} — {{ article.created_at|date:"d M Y" }}</div>
+                </div>
+                <a href="{% url 'article-approve' article.pk %}" class="btn btn-success btn-sm">Approve</a>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Nothing pending — you're all caught up!</p>
+{% endif %}
+{% endblock %}

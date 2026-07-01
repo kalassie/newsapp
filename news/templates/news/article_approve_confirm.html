@@ -1,0 +1,11 @@
+{% extends "news/base.html" %}
+{% block title %}Approve Article{% endblock %}
+{% block content %}
+<h2>Approve "{{ article.title }}"?</h2>
+<p>Approving will email all subscribers of {{ article.author.username }}{% if article.publisher %} and {{ article.publisher.name }}{% endif %}, and log the article to the internal approved-articles API.</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-success">Yes, approve and publish</button>
+    <a href="{% url 'pending-articles' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

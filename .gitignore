@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+
+# Virtual environment — never commit this; use requirements.txt instead
+venv/
+.venv/
+env/
+
+# Environment variables — contains secrets, never commit
+.env
+
+# Django
+db.sqlite3
+*.sqlite3
+staticfiles/
+media/
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.swp

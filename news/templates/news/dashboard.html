@@ -1,0 +1,84 @@
+{% extends "news/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2>Welcome, {{ user.username }}!</h2>
+<p class="text-muted">
+    You are signed in as a
+    <span class="badge bg-primary">{{ user.get_role_display }}</span>
+</p>
+
+<div class="row mt-4 g-3">
+    {% if user.role == 'reader' %}
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Browse Articles</h5>
+                <p>Read approved articles from publishers and journalists.</p>
+                <a href="{% url 'article-list' %}" class="btn btn-primary btn-sm">View Articles</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Publishers</h5>
+                <p>Browse publishers and the journalists who write for them.</p>
+                <a href="{% url 'publisher-list' %}" class="btn btn-outline-primary btn-sm">View Publishers</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Newsletters</h5>
+                <p>Browse curated article collections from journalists.</p>
+                <a href="{% url 'newsletter-list' %}" class="btn btn-outline-primary btn-sm">View Newsletters</a>
+            </div>
+        </div>
+
+    {% elif user.role == 'journalist' %}
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Your Articles</h5>
+                <p>{{ my_article_count }} article(s) submitted.</p>
+                <a href="{% url 'article-create' %}" class="btn btn-primary btn-sm">Write New Article</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Your Newsletters</h5>
+                <p>{{ my_newsletter_count }} newsletter(s) published.</p>
+                <a href="{% url 'newsletter-create' %}" class="btn btn-primary btn-sm">Create Newsletter</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Publishers</h5>
+                <p>See which publishers you are affiliated with.</p>
+                <a href="{% url 'publisher-list' %}" class="btn btn-outline-primary btn-sm">View Publishers</a>
+            </div>
+        </div>
+
+    {% elif user.role == 'editor' %}
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Pending Review</h5>
+                <p>{{ pending_count }} article(s) awaiting your approval.</p>
+                <a href="{% url 'pending-articles' %}" class="btn btn-warning btn-sm">Review Now</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Manage Publishers</h5>
+                <p>{{ publisher_count }} publisher(s) on the platform.</p>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'publisher-list' %}" class="btn btn-outline-primary btn-sm">View All</a>
+                    <a href="{% url 'publisher-create' %}" class="btn btn-primary btn-sm">+ New</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>All Articles</h5>
+                <p>Browse and manage any article on the platform.</p>
+                <a href="{% url 'article-list' %}" class="btn btn-outline-primary btn-sm">View Articles</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
