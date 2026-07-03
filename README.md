@@ -111,7 +111,7 @@ requirements.txt
 
 ### 3.1 Clone the repository
 ```bash
-git clone https://kalassie.com/<your-username>/newsapp.git
+git clone https://github.com/kalassie/newsapp.git
 cd newsapp
 ```
 
