@@ -40,6 +40,11 @@ def is_editor_or_journalist(user):
     return user.is_authenticated and user.role in ("editor", "journalist")
 
 
+def is_reader(user):
+    """Return True if the user is authenticated and has the Reader role."""
+    return user.is_authenticated and user.role == "reader"
+
+
 # ---------------------------------------------------------------------------
 # Authentication
 # ---------------------------------------------------------------------------
@@ -338,11 +343,98 @@ def publisher_list(request):
 
 @login_required
 def publisher_detail(request, pk):
-    """Display a single publisher with its affiliated editors, journalists and articles."""
+    """
+    Display a single publisher with its affiliated editors, journalists and articles.
+
+    Readers must not see any information about pending (unapproved) articles,
+    including the title, so the article list is filtered to approved articles
+    only before it ever reaches the template. Editors and Journalists still
+    see every article, including pending ones, so they can review/manage them.
+    """
     publisher = get_object_or_404(
         Publisher.objects.prefetch_related("editors", "journalists"), pk=pk
     )
-    return render(request, "news/publisher_detail.html", {"publisher": publisher})
+    if request.user.role == "reader":
+        articles = publisher.articles.filter(approved=True)
+    else:
+        articles = publisher.articles.all()
+
+    is_subscribed = False
+    if request.user.role == "reader":
+        is_subscribed = publisher.reader_subscribers.filter(pk=request.user.pk).exists()
+
+    return render(request, "news/publisher_detail.html", {
+        "publisher": publisher,
+        "articles": articles,
+        "is_subscribed": is_subscribed,
+    })
+
+
+@login_required
+@user_passes_test(is_reader, login_url="dashboard")
+def toggle_publisher_subscription(request, pk):
+    """
+    Allow a Reader to subscribe to or unsubscribe from a Publisher.
+
+    Subscribing means the Reader will receive an email once an article from
+    this publisher is approved (handled by the post_save signal on Article).
+    POST only; redirects back to the publisher detail page either way.
+    """
+    publisher = get_object_or_404(Publisher, pk=pk)
+    if request.method == "POST":
+        if publisher.reader_subscribers.filter(pk=request.user.pk).exists():
+            request.user.subscriptions_publishers.remove(publisher)
+            messages.success(request, f'Unsubscribed from "{publisher.name}".')
+        else:
+            request.user.subscriptions_publishers.add(publisher)
+            messages.success(request, f'Subscribed to "{publisher.name}". You will be emailed when they publish an approved article.')
+    return redirect("publisher-detail", pk=publisher.pk)
+
+
+# ---------------------------------------------------------------------------
+# Journalists (browse + subscribe, Reader-facing)
+# ---------------------------------------------------------------------------
+
+@login_required
+def journalist_list(request):
+    """
+    Display all journalists so Readers can find and subscribe to them.
+
+    For Readers, each journalist is annotated with whether the current user
+    is already subscribed, so the template can render the correct
+    Subscribe/Unsubscribe button state.
+    """
+    journalists = CustomUser.objects.filter(role=CustomUser.JOURNALIST).order_by("username")
+    subscribed_ids = set()
+    if request.user.role == "reader":
+        subscribed_ids = set(
+            request.user.subscriptions_journalists.values_list("id", flat=True)
+        )
+    return render(request, "news/journalist_list.html", {
+        "journalists": journalists,
+        "subscribed_ids": subscribed_ids,
+    })
+
+
+@login_required
+@user_passes_test(is_reader, login_url="dashboard")
+def toggle_journalist_subscription(request, pk):
+    """
+    Allow a Reader to subscribe to or unsubscribe from a Journalist.
+
+    Subscribing means the Reader will receive an email once an article by
+    this journalist is approved (handled by the post_save signal on Article).
+    POST only; redirects back to the journalist list either way.
+    """
+    journalist = get_object_or_404(CustomUser, pk=pk, role=CustomUser.JOURNALIST)
+    if request.method == "POST":
+        if request.user.subscriptions_journalists.filter(pk=journalist.pk).exists():
+            request.user.subscriptions_journalists.remove(journalist)
+            messages.success(request, f"Unsubscribed from {journalist.username}.")
+        else:
+            request.user.subscriptions_journalists.add(journalist)
+            messages.success(request, f"Subscribed to {journalist.username}. You will be emailed when they publish an approved article.")
+    return redirect("journalist-list")
 
 
 @login_required

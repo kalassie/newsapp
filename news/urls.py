@@ -53,4 +53,17 @@ urlpatterns = [
         views.publisher_delete,
         name="publisher-delete",
     ),
+    path(
+        "publishers/<int:pk>/subscribe/",
+        views.toggle_publisher_subscription,
+        name="publisher-subscribe-toggle",
+    ),
+
+    # Journalists (browse + subscribe, Reader-facing)
+    path("journalists/", views.journalist_list, name="journalist-list"),
+    path(
+        "journalists/<int:pk>/subscribe/",
+        views.toggle_journalist_subscription,
+        name="journalist-subscribe-toggle",
+    ),
 ]

@@ -30,6 +30,13 @@
                 <a href="{% url 'newsletter-list' %}" class="btn btn-outline-primary btn-sm">View Newsletters</a>
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>Journalists</h5>
+                <p>Subscribe to journalists to get emailed when their articles are approved.</p>
+                <a href="{% url 'journalist-list' %}" class="btn btn-outline-primary btn-sm">View Journalists</a>
+            </div>
+        </div>
 
     {% elif user.role == 'journalist' %}
         <div class="col-md-4">

@@ -3,12 +3,22 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>{{ publisher.name }}</h2>
-    {% if user.role == 'editor' %}
-        <div>
+    <div>
+        {% if user.role == 'reader' %}
+            <form method="post" action="{% url 'publisher-subscribe-toggle' publisher.pk %}" class="d-inline">
+                {% csrf_token %}
+                {% if is_subscribed %}
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Unsubscribe</button>
+                {% else %}
+                    <button type="submit" class="btn btn-primary btn-sm">Subscribe</button>
+                {% endif %}
+            </form>
+        {% endif %}
+        {% if user.role == 'editor' %}
             <a href="{% url 'publisher-edit' publisher.pk %}" class="btn btn-secondary btn-sm">Edit</a>
             <a href="{% url 'publisher-delete' publisher.pk %}" class="btn btn-danger btn-sm">Delete</a>
-        </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
 
 {% if publisher.description %}
@@ -44,12 +54,15 @@
 
 <h4 class="mt-4">Articles under this publisher</h4>
 <ul class="list-group">
-    {% for article in publisher.articles.all %}
+    {% for article in articles %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <a href="{% url 'article-detail' article.pk %}">{{ article.title }}</a>
             {% if article.approved %}
                 <span class="badge bg-success">Approved</span>
             {% else %}
+                {# Only Editors/Journalists ever see this branch: `articles` is
+                   pre-filtered to approved-only for Readers in the view, so a
+                   Reader can never see a pending article's title or status here. #}
                 <span class="badge bg-warning text-dark">Pending</span>
             {% endif %}
         </li>

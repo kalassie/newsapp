@@ -95,18 +95,40 @@ class CustomUser(AbstractUser):
         return self.newsletters_authored.all()
 
     def save(self, *args, **kwargs):
-        """Save the user and sync role group membership and subscription fields."""
-        is_new = self._state.adding
+        """Save the user and sync role group membership and role-restricted fields."""
         super().save(*args, **kwargs)
-        if not is_new:
-            self._clear_fields_not_relevant_to_role()
+        self._enforce_role_field_constraints()
         self._sync_role_group()
 
-    def _clear_fields_not_relevant_to_role(self):
-        """Clear Reader subscription fields when a user becomes a Journalist."""
-        if self.role == self.JOURNALIST:
+    def _enforce_role_field_constraints(self):
+        """
+        Ensure Reader-only and Journalist-only fields are empty for users
+        who do not hold that role.
+
+        The spec requires that a Journalist's Reader fields equal None, and
+        vice versa. Because the Reader/Journalist relationships here are
+        many-to-many, "None" is expressed as an empty relation rather than a
+        null scalar value:
+
+        * Reader fields (``subscriptions_publishers``, ``subscriptions_journalists``)
+          are cleared for any user who is not currently a Reader.
+        * Journalist fields (represented by ``subscribed_by_readers``, the
+          reverse of another Reader's ``subscriptions_journalists``) are
+          cleared for any user who is not currently a Journalist, so no
+          Reader is left "subscribed" to someone who is no longer a
+          Journalist.
+
+        This runs on every save (not just role changes) so it self-heals
+        regardless of how the role field was modified, and it is a no-op
+        for brand-new users since a fresh instance has no relations yet.
+        """
+        if self.pk is None:
+            return
+        if self.role != self.READER:
             self.subscriptions_publishers.clear()
             self.subscriptions_journalists.clear()
+        if self.role != self.JOURNALIST:
+            self.subscribed_by_readers.clear()
 
     def _sync_role_group(self):
         """Ensure the user belongs to exactly one role-based auth Group."""

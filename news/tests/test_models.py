@@ -89,6 +89,36 @@ class CustomUserRoleTests(TestCase):
         Article.objects.create(title="Story", content="...", author=journalist)
         self.assertEqual(journalist.published_articles.count(), 1)
 
+    def test_reader_role_clears_journalist_followers(self):
+        """When a Journalist is changed to Reader, readers following them should be cleared."""
+        journalist = User.objects.create_user(
+            username="wasjourno", password="pass1234",
+            email="wasjourno@example.com", role=User.JOURNALIST
+        )
+        follower = User.objects.create_user(
+            username="follower", password="pass1234",
+            email="follower@example.com", role=User.READER
+        )
+        follower.subscriptions_journalists.add(journalist)
+        self.assertEqual(journalist.subscribed_by_readers.count(), 1)
+
+        journalist.role = User.READER
+        journalist.save()
+        journalist.refresh_from_db()
+        follower.refresh_from_db()
+        self.assertEqual(journalist.subscribed_by_readers.count(), 0)
+        self.assertEqual(follower.subscriptions_journalists.count(), 0)
+
+    def test_editor_role_has_empty_reader_and_journalist_fields(self):
+        """An Editor should have empty Reader fields and no Reader followers."""
+        editor = User.objects.create_user(
+            username="ed1", password="pass1234",
+            email="ed1@example.com", role=User.EDITOR
+        )
+        self.assertEqual(editor.subscriptions_publishers.count(), 0)
+        self.assertEqual(editor.subscriptions_journalists.count(), 0)
+        self.assertEqual(editor.subscribed_by_readers.count(), 0)
+
     def test_email_must_be_unique(self):
         """Creating two users with the same email address should raise an IntegrityError."""
         from django.db import IntegrityError

@@ -1,0 +1,35 @@
+{% extends "news/base.html" %}
+{% block title %}Journalists{% endblock %}
+{% block content %}
+<h2 class="mb-3">Journalists</h2>
+
+{% if journalists %}
+    <div class="list-group">
+        {% for journalist in journalists %}
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-1">{{ journalist.username }}</h5>
+                        <p class="mb-0 text-muted small">
+                            {{ journalist.email }}
+                            &middot; {{ journalist.published_articles.count }} article(s) published
+                        </p>
+                    </div>
+                    {% if user.role == 'reader' %}
+                        <form method="post" action="{% url 'journalist-subscribe-toggle' journalist.pk %}">
+                            {% csrf_token %}
+                            {% if journalist.id in subscribed_ids %}
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">Unsubscribe</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-primary btn-sm">Subscribe</button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="text-muted">No journalists have registered yet.</p>
+{% endif %}
+{% endblock %}
